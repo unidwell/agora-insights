@@ -1,0 +1,30 @@
+{
+    "name": "agora-insights",
+    "version": "0.0.1",
+    "description": "",
+    "main": "src/main.js",
+    "author": "Unidwell",
+    "license": "MIT",
+    "type": "module",
+    "engines": {
+      "node": "21.7.3",
+      "yarn": "1.19.1"
+    },
+    "scripts": {
+      "lint": "eslint",
+      "test": "mocha --recursive 'src/**/__tests__/*.js'"
+    },
+    "dependencies": {
+      "lodash-es": "^4.17.21",
+      "moment": "^2.30.1",
+      "yargs": "^17.7.2"
+    },
+    "devDependencies": {
+      "chai": "^5.1.0",
+      "eslint": "^9.1.1",
+      "eslint-config-prettier": "^9.1.0",
+      "mocha": "^10.4.0",
+      "prettier": "^3.2.5"
+    }
+  }
+  
