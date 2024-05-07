@@ -1,0 +1,7 @@
+node_modules
+yarn-error.log
+lib
+.cache
+.vscode
+.DS_Store
+*.swp
