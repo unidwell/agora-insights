@@ -10,7 +10,12 @@ describe('PredictionMarket', () => {
     market = new PredictionMarket()
   })
 
-  it('should create a new vanilla market without events', () => {
+  it('should create a new vanilla market without any events', () => {
+    const newMarket = market.getMarket()
+    expect(newMarket).to.deep.equal({})
+  })
+
+  it('should create a new market with an event without any outcomes', () => {
     market.createEvent('SongCompetition')
     const newMarket = market.getMarket()
 
