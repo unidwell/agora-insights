@@ -1,5 +1,5 @@
 import assert from 'assert'
-import lodash from 'lodash-es'
+import { forEach, flatten } from 'lodash-es'
 
 export default class PredictionMarket {
   constructor() {
@@ -10,7 +10,9 @@ export default class PredictionMarket {
     this.market[eventName] = {
       outcomes: new Set(),
       participants: new Set(),
-      bets: {},
+      pools: {},
+      poolsTotal: {},
+      total: 0,
     }
   }
 
@@ -19,6 +21,10 @@ export default class PredictionMarket {
   // @param {Array<string>} outcomes - an array of outcome names.
   // This method adds the outcomes to the event.
   addOutcomes(eventName, outcomes) {
+    assert.ok(
+      typeof eventName === 'string',
+      new Error(`Event name '${eventName}' must be a string.`)
+    )
     assert.ok(
       this.market[eventName] !== undefined,
       new Error(`Event '${eventName}' does not exist.`)
@@ -30,6 +36,7 @@ export default class PredictionMarket {
     })
   }
 
+  // Add a bet to the specified pool.
   placeBet(eventName, outcomeName, participant, amount) {
     const market = this.market[eventName]
     assert.ok(market !== undefined, new Error(`Event '${eventName}' does not exist.`))
@@ -45,11 +52,11 @@ export default class PredictionMarket {
 
     market.participants.add(participant)
 
-    if (!market.bets[outcomeName]) {
-      market.bets[outcomeName] = []
+    if (!market.pools[outcomeName]) {
+      market.pools[outcomeName] = []
     }
 
-    const bets = market.bets[outcomeName]
+    const bets = market.pools[outcomeName]
     bets.push([participant, amount])
   }
 
@@ -73,15 +80,15 @@ export default class PredictionMarket {
       new Error(`Outcome '${winningOutcomeName}' does not exist for event '${eventName}'.`)
     )
 
-    const bets = market.bets
-    const betValues = flatten(Object.values(bets)).map(([_, amount]) => amount)
+    const pools = market.pools
+    const betValues = flatten(Object.values(pools)).map(([_, amount]) => amount)
     const totalAmount = betValues.reduce((total, amount) => total + amount, 0)
 
     const rewards = {}
 
     // Participants keep the correctly places bets.
-    forEach(bets, (specificBets, outcomeName) => {
-      specificBets.forEach(([participant, amount]) => {
+    forEach(pools, (bets, outcomeName) => {
+      bets.forEach(([participant, amount]) => {
         if (rewards[participant] === undefined) {
           rewards[participant] = 0
         }
@@ -91,8 +98,8 @@ export default class PredictionMarket {
       })
     })
 
-    // The total amount of bets on the winning outcome.
-    const totalAmountOnWinningOutcome = bets[winningOutcomeName].reduce(
+    // The total amount of bets for the winning outcome.
+    const totalAmountOnWinningOutcome = pools[winningOutcomeName].reduce(
       (total, [_, amount]) => total + amount,
       0
     )
@@ -101,7 +108,7 @@ export default class PredictionMarket {
     const restOfTheMoney = totalAmount - totalAmountOnWinningOutcome
 
     // distribute the rest of the money among the winners proportionally to the amount of money they bet
-    bets[winningOutcomeName].forEach(([participant, amount]) => {
+    pools[winningOutcomeName].forEach(([participant, amount]) => {
       rewards[participant] += (amount / totalAmountOnWinningOutcome) * restOfTheMoney
     })
 

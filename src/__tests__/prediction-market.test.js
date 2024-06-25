@@ -20,7 +20,13 @@ describe('PredictionMarket', () => {
     const newMarket = market.getMarket()
 
     expect(newMarket).to.deep.equal({
-      SongCompetition: { outcomes: new Set(), participants: new Set(), bets: {} },
+      SongCompetition: {
+        outcomes: new Set(),
+        participants: new Set(),
+        pools: {},
+        poolsTotal: {},
+        total: 0,
+      },
     })
   })
 
@@ -39,7 +45,7 @@ describe('PredictionMarket', () => {
     const newMarket = market.getMarket()
 
     expect(stringify(newMarket['SongCompetition'].participants)).to.equal('"Set(Alice)"')
-    expect(stringify(newMarket['SongCompetition'].bets)).to.equal('{"Song A":[["Alice",100]]}')
+    expect(stringify(newMarket['SongCompetition'].pools)).to.equal('{"Song A":[["Alice",100]]}')
   })
 
   it('same user can bet two times', () => {
@@ -49,7 +55,7 @@ describe('PredictionMarket', () => {
     market.placeBet('SongCompetition', 'Song A', 'Alice', 150)
     const newMarket = market.getMarket()
 
-    expect(stringify(newMarket['SongCompetition'].bets)).to.equal(
+    expect(stringify(newMarket['SongCompetition'].pools)).to.equal(
       '{"Song A":[["Alice",100],["Alice",150]]}'
     )
   })
@@ -63,7 +69,7 @@ describe('PredictionMarket', () => {
 
     expect(stringify(newMarket['SongCompetition'].outcomes)).to.equal('"Set(Song A,Song B)"')
     expect(stringify(newMarket['SongCompetition'].participants)).to.equal('"Set(Alice,Bob)"')
-    expect(stringify(newMarket['SongCompetition'].bets)).to.equal(
+    expect(stringify(newMarket['SongCompetition'].pools)).to.equal(
       '{"Song A":[["Alice",100]],"Song B":[["Bob",200]]}'
     )
   })
