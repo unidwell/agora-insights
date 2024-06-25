@@ -10,12 +10,17 @@ describe('PredictionMarket', () => {
     market = new PredictionMarket()
   })
 
-  it('should create a new vanilla market without events', () => {
+  it('should create a new vanilla market without any events', () => {
+    const newMarket = market.getMarket()
+    expect(newMarket).to.deep.equal({})
+  })
+
+  it('should create a new market with an event without any outcomes', () => {
     market.createEvent('SongCompetition')
     const newMarket = market.getMarket()
 
     expect(newMarket).to.deep.equal({
-      SongCompetition: { outcomes: new Set(), participants: new Set(), bets: new Map() },
+      SongCompetition: { outcomes: new Set(), participants: new Set(), bets: {} },
     })
   })
 
@@ -63,16 +68,16 @@ describe('PredictionMarket', () => {
     )
   })
 
-  // A test for resolveMarket(eventName, outcomeName) that resolves the market for a given event and outcome.
+  // Check the market resolution after all bets have been placed.
   it('should resolve the market for a given event and outcome', () => {
     market.createEvent('SongCompetition')
     market.addOutcomes('SongCompetition', ['Song A', 'Song B'])
     market.placeBet('SongCompetition', 'Song A', 'Alice', 100)
     market.placeBet('SongCompetition', 'Song B', 'Bob', 200)
     const newMarket = market.getMarket()
+
+    // Alice should win.
     const outcomes = market.resolveMarket('SongCompetition', 'Song A')
-    console.log(stringify(newMarket['SongCompetition'].bets))
-    console.log(outcomes)
     expect(stringify(outcomes)).to.equal('{"rewards":{"Alice":300,"Bob":0},"totalAmount":300}')
   })
 })

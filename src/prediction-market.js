@@ -10,7 +10,7 @@ export default class PredictionMarket {
     this.market[eventName] = {
       outcomes: new Set(),
       participants: new Set(),
-      bets: new Map(),
+      bets: {},
     }
   }
 
@@ -45,11 +45,11 @@ export default class PredictionMarket {
 
     market.participants.add(participant)
 
-    if (!market.bets.has(outcomeName)) {
-      market.bets.set(outcomeName, [])
+    if (!market.bets[outcomeName]) {
+      market.bets[outcomeName] = []
     }
 
-    const bets = market.bets.get(outcomeName)
+    const bets = market.bets[outcomeName]
     bets.push([participant, amount])
   }
 
@@ -74,14 +74,13 @@ export default class PredictionMarket {
     )
 
     const bets = market.bets
-    // {"Song A":[["Alice",100]],"Song B":[["Bob",200]]}
-    const betValues = lodash.flatten([...bets.values()]).map(([_, amount]) => amount)
+    const betValues = flatten(Object.values(bets)).map(([_, amount]) => amount)
     const totalAmount = betValues.reduce((total, amount) => total + amount, 0)
 
     const rewards = {}
 
-    // participants keep what is they correctly bet
-    bets.forEach((specificBets, outcomeName) => {
+    // Participants keep the correctly places bets.
+    forEach(bets, (specificBets, outcomeName) => {
       specificBets.forEach(([participant, amount]) => {
         if (rewards[participant] === undefined) {
           rewards[participant] = 0
@@ -92,16 +91,17 @@ export default class PredictionMarket {
       })
     })
 
-    // calculate the total amount of bets on the winning outcome
-    const totalAmountOnWinningOutcome = bets
-      .get(winningOutcomeName)
-      .reduce((total, [_, amount]) => total + amount, 0)
+    // The total amount of bets on the winning outcome.
+    const totalAmountOnWinningOutcome = bets[winningOutcomeName].reduce(
+      (total, [_, amount]) => total + amount,
+      0
+    )
 
     // calculate the rest of the money
     const restOfTheMoney = totalAmount - totalAmountOnWinningOutcome
 
     // distribute the rest of the money among the winners proportionally to the amount of money they bet
-    bets.get(winningOutcomeName).forEach(([participant, amount]) => {
+    bets[winningOutcomeName].forEach(([participant, amount]) => {
       rewards[participant] += (amount / totalAmountOnWinningOutcome) * restOfTheMoney
     })
 
