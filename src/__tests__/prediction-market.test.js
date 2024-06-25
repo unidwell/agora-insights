@@ -20,7 +20,7 @@ describe('PredictionMarket', () => {
     const newMarket = market.getMarket()
 
     expect(newMarket).to.deep.equal({
-      SongCompetition: { outcomes: new Set(), participants: new Set(), bets: new Map() },
+      SongCompetition: { outcomes: new Set(), participants: new Set(), bets: {} },
     })
   })
 
