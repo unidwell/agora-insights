@@ -46,6 +46,8 @@ describe('PredictionMarket', () => {
 
     expect(stringify(newMarket['SongCompetition'].participants)).to.equal('"Set(Alice)"')
     expect(stringify(newMarket['SongCompetition'].pools)).to.equal('{"Song A":[["Alice",100]]}')
+    expect(newMarket['SongCompetition'].poolsTotal['Song A']).to.equal(100)
+    expect(newMarket['SongCompetition'].total).to.equal(100)
   })
 
   it('same user can bet two times', () => {
@@ -58,6 +60,8 @@ describe('PredictionMarket', () => {
     expect(stringify(newMarket['SongCompetition'].pools)).to.equal(
       '{"Song A":[["Alice",100],["Alice",150]]}'
     )
+    expect(newMarket['SongCompetition'].poolsTotal['Song A']).to.equal(250)
+    expect(newMarket['SongCompetition'].total).to.equal(250)
   })
 
   it('an event with two users placing bets', () => {
@@ -72,9 +76,12 @@ describe('PredictionMarket', () => {
     expect(stringify(newMarket['SongCompetition'].pools)).to.equal(
       '{"Song A":[["Alice",100]],"Song B":[["Bob",200]]}'
     )
+    expect(newMarket['SongCompetition'].poolsTotal['Song A']).to.equal(100)
+    expect(newMarket['SongCompetition'].poolsTotal['Song B']).to.equal(200)
+    expect(newMarket['SongCompetition'].total).to.equal(300)
   })
 
-  // Check the market resolution after all bets have been placed.
+  // Check the distribution of rewards.
   it('should resolve the market for a given event and outcome', () => {
     market.createEvent('SongCompetition')
     market.addOutcomes('SongCompetition', ['Song A', 'Song B'])
@@ -85,5 +92,46 @@ describe('PredictionMarket', () => {
     // Alice should win.
     const outcomes = market.resolveMarket('SongCompetition', 'Song A')
     expect(stringify(outcomes)).to.equal('{"rewards":{"Alice":300,"Bob":0},"totalAmount":300}')
+  })
+
+  it('the rewards when Alice bets two times', () => {
+    market.createEvent('SongCompetition')
+    market.addOutcomes('SongCompetition', ['Song A', 'Song B'])
+    market.placeBet('SongCompetition', 'Song A', 'Alice', 100)
+    market.placeBet('SongCompetition', 'Song A', 'Alice', 50)
+    market.placeBet('SongCompetition', 'Song B', 'Bob', 200)
+    const newMarket = market.getMarket()
+
+    // Alice should win.
+    const outcomes = market.resolveMarket('SongCompetition', 'Song A')
+    expect(stringify(outcomes)).to.equal('{"rewards":{"Alice":350,"Bob":0},"totalAmount":350}')
+  })
+
+  it('the rewards when Alice bets two times, but also against herself', () => {
+    market.createEvent('SongCompetition')
+    market.addOutcomes('SongCompetition', ['Song A', 'Song B'])
+    market.placeBet('SongCompetition', 'Song A', 'Alice', 100)
+    market.placeBet('SongCompetition', 'Song B', 'Alice', 50)
+    market.placeBet('SongCompetition', 'Song B', 'Bob', 200)
+    const newMarket = market.getMarket()
+
+    // Alice should win.
+    const outcomes = market.resolveMarket('SongCompetition', 'Song A')
+    expect(stringify(outcomes)).to.equal('{"rewards":{"Alice":350,"Bob":0},"totalAmount":350}')
+  })
+
+  it('the current prediction market price of out outcomes', () => {
+    market.createEvent('SongCompetition')
+    market.addOutcomes('SongCompetition', ['Song A', 'Song B'])
+    market.placeBet('SongCompetition', 'Song A', 'Alice', 100)
+    market.placeBet('SongCompetition', 'Song B', 'Bob', 400)
+    const newMarket = market.getMarket()
+
+    // Alice should win.
+    const outcomes = market.resolveMarket('SongCompetition', 'Song A')
+    const priceA = market.getCurrentOutcomePrice('SongCompetition', 'Song A')
+    const priceB = market.getCurrentOutcomePrice('SongCompetition', 'Song B')
+    expect(priceA).to.equal(0.2)
+    expect(priceB).to.equal(0.8)
   })
 })
